@@ -85,8 +85,7 @@ Compatibility: Windows 10 (64-bit, version 1809+) and Windows 11. Windows 10 com
   been comprehensively certified. Stop Models and model switches may briefly
   pause the UI while workers shut down.
 
-## Third-Party Licenses
-
+## THIRD-PARTY LICENSES
 WhisperBox is built using the following open-source projects:
 
 - **Chatterbox** — Resemble AI  
