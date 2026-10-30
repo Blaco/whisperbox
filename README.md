@@ -85,7 +85,17 @@ Compatibility: Windows 10 (64-bit, version 1809+) and Windows 11. Windows 10 com
   been comprehensively certified. Stop Models and model switches may briefly
   pause the UI while workers shut down.
 
-## PRIVACY AND RIGHTS
-Transcription and inference run locally. Installation and initial model downloads
-use public repositories. Use only voice recordings that you own or have
-permission to clone. Review upstream dependency licenses before redistribution.
+## Third-Party Licenses
+
+WhisperBox is built using the following open-source projects:
+
+- **Chatterbox** — Resemble AI  
+  https://github.com/resemble-ai/chatterbox
+
+- **Faster-Whisper** — SYSTRAN  
+  https://github.com/SYSTRAN/faster-whisper
+
+- **Silero VAD** — Silero Team  
+  https://github.com/snakers4/silero-vad
+
+All three projects are licensed under the MIT License.
