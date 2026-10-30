@@ -1,237 +1,84 @@
-![Chatterbox Multilingual Image](./Chatterbox-Multilingual.png)
-
-
-# Chatterbox TTS
-
-[![Alt Text](https://img.shields.io/badge/listen-demo_samples-blue)](https://resemble-ai.github.io/chatterbox_demopage/)
-[![Alt Text](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg)](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS)
-[![Alt Text](https://static-public.podonos.com/badges/insight-on-pdns-sm-dark.svg)](https://podonos.com/resembleai/chatterbox)
-[![Discord](https://img.shields.io/discord/1377773249798344776?label=join%20discord&logo=discord&style=flat)](https://discord.gg/rJq9cRJBJ6)
-
-*Made with ♥️ by* <a href="https://resemble.ai" target="_blank"><img width="100" alt="resemble-logo-horizontal" src="https://github.com/user-attachments/assets/35cf756b-3506-4943-9c72-c05ddfa4e525" /></a>
-
-**Chatterbox** is a family of state-of-the-art, open-source text-to-speech models by Resemble AI.
-
-## Latest Release: Chatterbox Multilingual V3
-
-**Chatterbox Multilingual V3** is the latest general-purpose multilingual TTS model in the Chatterbox family. It keeps the same 0.5B model size while improving speaker similarity, reducing hallucinations, and producing more natural, conversational speech across languages.
-
-V3 is designed for broad language coverage like V2, but with stronger stability and more expressive generation. It is the recommended multilingual model for users who want one voice cloning model that works across many languages.
-
-Alongside V3, we are releasing the **Single Language Pack**: dedicated finetunes for priority languages where tighter quality control, stronger language-specific behavior, and more specialized speech generation are valuable.
-
-- **Broad Multilingual Coverage:** Designed as the main general-purpose multilingual Chatterbox model, supporting wide language coverage similar to V2.
-- **Single Language Pack:** Dedicated single-language models provide stronger specialization and quality control where language- and regional-dialect-specific performance matters most.
-- **More Consistent Speaker Similarity:** Improves voice identity and accent preservation across languages, making cross-language voice cloning more stable and reliable.
-- **Reduced Hallucination:** V3 is optimized to reduce unwanted continuation, repetition, and off-prompt speech, especially in cases where earlier multilingual models were less stable.
-
-For low-latency English voice agents, **Chatterbox-Turbo** is our most efficient model. Built on a streamlined 350M parameter architecture, **Turbo** delivers high-quality speech with less compute and VRAM than our previous models. We have also distilled the speech-token-to-mel decoder, previously a bottleneck, reducing generation from 10 steps to just **one**, while retaining high-fidelity audio output.
-
-**Paralinguistic tags** are now native to the Turbo model, allowing you to use `[cough]`, `[laugh]`, `[chuckle]`, and more to add distinct realism. While Turbo was built primarily for low-latency voice agents, it excels at narration and creative workflows.
-
-For the most resource-constrained deployments, **Chatterbox-Nano** shares Turbo's architecture in an even smaller 110M parameter package. It targets on-device and CPU inference — running **3x faster than realtime on 8 CPU cores** — while keeping the same single-step decoder and native paralinguistic tag support. Nano is the recommended model when memory and latency budgets are tightest.
-
-If you like the model but need to scale or tune it for higher accuracy, check out our competitively priced TTS service (<a href="https://resemble.ai">link</a>). It delivers reliable performance with ultra-low latency of sub 200ms—ideal for production use in agents, applications, or interactive media.
-
-<img width="1200" height="600" alt="Podonos Turbo Eval" src="https://storage.googleapis.com/chatterbox-demo-samples/turbo/podonos_turbo.png" />
-
-### ⚡ Model Zoo
-
-Choose the right model for your application.
-
-| Model                                                                                                           | Size | Languages | Key Features                                            | Best For                                     | 🤗                                                                  | Examples |
-|:----------------------------------------------------------------------------------------------------------------| :--- | :--- |:--------------------------------------------------------|:---------------------------------------------|:--------------------------------------------------------------------------| :--- |
-| **Chatterbox-Turbo**                                                                                            | **350M** | **English** | Paralinguistic Tags (`[laugh]`), Lower Compute and VRAM | Zero-shot voice agents,  Production          | [Demo](https://huggingface.co/spaces/ResembleAI/chatterbox-turbo-demo)        | [Listen](https://resemble-ai.github.io/chatterbox_turbo_demopage/) |
-| **Chatterbox-Nano**                                                                                             | **110M** | **English** | Same architecture as Turbo, Paralinguistic Tags, Runs on CPU (3x realtime on 8 cores) | On-device / CPU inference, tight latency & memory budgets | [Model](https://huggingface.co/ResembleAI/chatterbox-nano)        | — |
-| **Chatterbox-Multilingual V3** [(Language list)](#supported-languages)                                          | **500M** | **23+** | Improved speaker similarity, reduced hallucinations, more natural multilingual speech | Global applications, localization, cross-language voice cloning | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS) | [Listen](https://resemble-ai.github.io/chatterbox_demopage/) |
-| **Single Language Pack** [(Models)](#single-language-pack)                                                      | 500M each | 6 dedicated finetunes | Language- and region-specific quality control           | Priority languages and dialect-sensitive applications | [Models](#single-language-pack) | [Demos](#single-language-pack) |
-| Chatterbox [(Tips and Tricks)](#original-chatterbox-tips)                                                       | 500M | English | CFG & Exaggeration tuning                               | General zero-shot TTS with creative controls | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox)              | [Listen](https://resemble-ai.github.io/chatterbox_demopage/) |
-
-## Installation
-```shell
-pip install chatterbox-tts
-```
-
-Alternatively, you can install from source:
-```shell
-# conda create -yn chatterbox python=3.11
-# conda activate chatterbox
-
-git clone https://github.com/resemble-ai/chatterbox.git
-cd chatterbox
-pip install -e .
-```
-We developed and tested Chatterbox on Python 3.11 on Debian 11 OS; the versions of the dependencies are pinned in `pyproject.toml` to ensure consistency. You can modify the code or dependencies in this installation mode.
-
-## Usage
-
-##### Chatterbox-Turbo
-
-```python
-import torchaudio as ta
-import torch
-from chatterbox.tts_turbo import ChatterboxTurboTTS
-
-# Load the Turbo model
-model = ChatterboxTurboTTS.from_pretrained(device="cuda")
-
-# Generate with Paralinguistic Tags
-text = "Hi there, Sarah here from MochaFone calling you back [chuckle], have you got one minute to chat about the billing issue?"
-
-# Generate audio (requires a reference clip for voice cloning)
-wav = model.generate(text, audio_prompt_path="your_10s_ref_clip.wav")
-
-ta.save("test-turbo.wav", wav, model.sr)
-```
-
-##### Chatterbox-Nano
-
-Nano shares Turbo's architecture and is loaded through the same `ChatterboxTurboTTS` class by passing `nano=True`:
-
-```python
-import torchaudio as ta
-import torch
-from chatterbox.tts_turbo import ChatterboxTurboTTS
-
-# Load the Nano model (also runs on CPU: device="cpu")
-model = ChatterboxTurboTTS.from_pretrained(device="cuda", nano=True)
-
-# Generate with Paralinguistic Tags
-text = "Hi there, Sarah here from MochaFone calling you back [chuckle], have you got one minute to chat about the billing issue?"
-
-# Generate audio (requires a reference clip for voice cloning)
-wav = model.generate(text, audio_prompt_path="your_10s_ref_clip.wav")
-
-ta.save("test-nano.wav", wav, model.sr)
-```
-
-##### Chatterbox and Chatterbox-Multilingual
-
-```python
-
-import torchaudio as ta
-from chatterbox.tts import ChatterboxTTS
-from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-
-device = "cuda"  # or "cpu" / "mps"
-
-# English example
-model = ChatterboxTTS.from_pretrained(device=device)
-
-text = "Ezreal and Jinx teamed up with Ahri, Yasuo, and Teemo to take down the enemy's Nexus in an epic late-game pentakill."
-wav = model.generate(text)
-ta.save("test-english.wav", wav, model.sr)
-
-# Multilingual V3 examples
-multilingual_model = ChatterboxMultilingualTTS.from_pretrained(device=device, t3_model="v3")
-# To use the legacy V2 multilingual checkpoint, omit t3_model or pass t3_model="v2".
-
-french_text = "Bonjour, comment ça va? Ceci est le modèle de synthèse vocale multilingue Chatterbox, il prend en charge 23 langues."
-wav_french = multilingual_model.generate(french_text, language_id="fr")
-ta.save("test-french.wav", wav_french, multilingual_model.sr)
-
-chinese_text = "你好，今天天气真不错，希望你有一个愉快的周末。"
-wav_chinese = multilingual_model.generate(chinese_text, language_id="zh")
-ta.save("test-chinese.wav", wav_chinese, multilingual_model.sr)
-
-# If you want to synthesize with a different voice, specify the audio prompt
-AUDIO_PROMPT_PATH = "YOUR_FILE.wav"
-wav = model.generate(text, audio_prompt_path=AUDIO_PROMPT_PATH)
-ta.save("test-2.wav", wav, model.sr)
-```
-See `example_tts.py`, `example_tts_turbo.py`, `example_tts_nano.py`, and `example_vc.py` for more examples.
-
-## Supported Languages
-The general-purpose Chatterbox Multilingual model supports the following languages:
-
-Arabic (ar) • Danish (da) • German (de) • Greek (el) • English (en) • Spanish (es) • Finnish (fi) • French (fr) • Hebrew (he) • Hindi (hi) • Italian (it) • Japanese (ja) • Korean (ko) • Malay (ms) • Dutch (nl) • Norwegian (no) • Polish (pl) • Portuguese (pt) • Russian (ru) • Swedish (sv) • Swahili (sw) • Turkish (tr) • Chinese (zh)
-
-## Single Language Pack
-
-The Single Language Pack provides dedicated finetunes for priority languages and regional variants. Use these when you want stronger language-specific behavior, tighter quality control, or dialect-aware generation beyond the general multilingual model.
-
-| Language | Model Card | Demo Space |
-| --- | --- | --- |
-| Chinese | [ResembleAI/Chatterbox-Multilingual-zh-cmn](https://huggingface.co/ResembleAI/Chatterbox-Multilingual-zh-cmn) | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-zh-cmn) |
-| Latam Spanish | [ResembleAI/Chatterbox-Multilingual-es-mx-latam](https://huggingface.co/ResembleAI/Chatterbox-Multilingual-es-mx-latam) | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-es-mx-latam) |
-| Brazilian Portuguese | [ResembleAI/Chatterbox-Multilingual-pt-br](https://huggingface.co/ResembleAI/Chatterbox-Multilingual-pt-br) | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-pt-br) |
-| Spain Spanish | [ResembleAI/Chatterbox-Multilingual-es-es](https://huggingface.co/ResembleAI/Chatterbox-Multilingual-es-es) | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-es-es) |
-| Portugal Portuguese | [ResembleAI/Chatterbox-Multilingual-pt-pt](https://huggingface.co/ResembleAI/Chatterbox-Multilingual-pt-pt) | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-pt-pt) |
-| Hindi | [ResembleAI/Chatterbox-Multilingual-hi](https://huggingface.co/ResembleAI/Chatterbox-Multilingual-hi) | [Demo](https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-hi) |
-
-## Original Chatterbox Tips
-- **General Use (TTS and Voice Agents):**
-  - Ensure that the reference clip matches the specified language tag. Otherwise, language transfer outputs may inherit the accent of the reference clip’s language. To mitigate this, set `cfg_weight` to `0`.
-  - The default settings (`exaggeration=0.5`, `cfg_weight=0.5`) work well for most prompts across all languages.
-  - If the reference speaker has a fast speaking style, lowering `cfg_weight` to around `0.3` can improve pacing.
-
-- **Expressive or Dramatic Speech:**
-  - Try lower `cfg_weight` values (e.g. `~0.3`) and increase `exaggeration` to around `0.7` or higher.
-  - Higher `exaggeration` tends to speed up speech; reducing `cfg_weight` helps compensate with slower, more deliberate pacing.
-
-
-## Built-in PerTh Watermarking for Responsible AI
-
-Every audio file generated by Chatterbox includes [Resemble AI's Perth (Perceptual Threshold) Watermarker](https://github.com/resemble-ai/perth) - imperceptible neural watermarks that survive MP3 compression, audio editing, and common manipulations while maintaining nearly 100% detection accuracy.
-
-
-## Watermark extraction
-
-You can look for the watermark using the following script.
-
-```python
-import perth
-import librosa
-
-AUDIO_PATH = "YOUR_FILE.wav"
-
-# Load the watermarked audio
-watermarked_audio, sr = librosa.load(AUDIO_PATH, sr=None)
-
-# Initialize watermarker (same as used for embedding)
-watermarker = perth.PerthImplicitWatermarker()
-
-# Extract watermark
-watermark = watermarker.get_watermark(watermarked_audio, sample_rate=sr)
-print(f"Extracted watermark: {watermark}")
-# Output: 0.0 (no watermark) or 1.0 (watermarked)
-```
-
-
-## Official Discord
-
-👋 Join us on [Discord](https://discord.gg/rJq9cRJBJ6) and let's build something awesome together!
-
-## Evaluation
-Chatterbox Turbo was evaluated using Podonos, a platform for reproducible subjective speech evaluation.
-
-We compared Chatterbox Turbo to competitive TTS systems using Podonos' standardized evaluation suite, focusing on overall preference, naturalness, and expressiveness.
-
-Evaluation reports:
-- [Chatterbox Turbo vs ElevenLabs Turbo v2.5](https://podonos.com/resembleai/chatterbox-turbo-vs-elevenlabs-turbo)
-- [Chatterbox Turbo vs Cartesia Sonic 3](https://podonos.com/resembleai/chatterbox-turbo-vs-cartesia-sonic3)
-- [Chatterbox Turbo vs VibeVoice 7B](https://podonos.com/resembleai/chatterbox-turbo-vs-vibevoice7b)
-
-These evaluations were conducted under identical conditions and are publicly accessible via Podonos.
-
-## Acknowledgements
-- [Podonos](https://podonos.com) — for supporting reproducible subjective speech evaluation
-- [Cosyvoice](https://github.com/FunAudioLLM/CosyVoice)
-- [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)
-- [HiFT-GAN](https://github.com/yl4579/HiFTNet)
-- [Llama 3](https://github.com/meta-llama/llama3)
-- [S3Tokenizer](https://github.com/xingchensong/S3Tokenizer)
-
-## Citation
-If you find this model useful, please consider citing.
-```
-@misc{chatterboxtts2025,
-  author       = {{Resemble AI}},
-  title        = {{Chatterbox-TTS}},
-  year         = {2025},
-  howpublished = {\url{https://github.com/resemble-ai/chatterbox}},
-  note         = {GitHub repository}
-}
-```
-## Disclaimer
-Don't use this model to do bad things. Prompts are sourced from freely available data on the internet.
+# WHISPERBOX
+Windows 10 (64-bit; 1809 or newer) / Windows 11 desktop voice application.
+Windows 10 compatibility is targeted but has NOT been certified.
+
+## QUICK INSTALL (INTERNET REQUIRED)
+1. Extract the entire ZIP to a writable folder.
+2. Run Install_WhisperBox.bat and choose the environment method:
+   [1] Automatic private Python (recommended). Downloads Python 3.10 and 3.11
+       into runtime/ without requiring system Python or Conda.
+   [2] Existing Conda environments.
+   [3] Existing Python / venv (requires 64-bit Python 3.10 and 3.11).
+   Dependencies are installed through uv.
+3. Choose CPU or NVIDIA CUDA. Installation then begins automatically.
+   CUDA requires a compatible NVIDIA GPU and installed NVIDIA driver.
+4. Installation provisions packages, downloads model weights, checks imports
+   and GPU compute (if chosen), and prepares Chatterbox_Default.wav.
+5. Double-click Launch_WhisperBox.vbs to start WhisperBox.
+   If launching fails, inspect logs\gui_startup.log.
+
+## IMPORTANT
+- The ZIP contains the application, not Python environments or large model
+  weights. The first installation requires internet access and free disk space.
+- Option 3 never downloads a Python interpreter. It searches installed Python
+  versions (including pyenv-win), or prompts for full executable paths.
+- Keep your installation folder in place after installing private environments.
+- An update extracted over the same folder preserves runtime/, models/,
+  config/, logs/, presets, and saved audio. Do not delete those directories.
+- Installation logs: logs\install_transcript.log. To repair dependencies or
+  an interrupted installation, rerun Install_WhisperBox.bat.
+- Models run locally after initial setup, without online inference services.
+
+## GENERATE TAB
+- Select Chatterbox Original or Turbo, a reference voice, and a CPU/CUDA device.
+  The reference voice dropdown refreshes its choices whenever you open it.
+  Add your own WAV/MP3/OGG references to models\voices.
+- START MODELS loads Whisper/Silero and, when Echo is enabled, Chatterbox.
+- Microphone listening is AUTOMATIC: Silero detects speech, and Whisper
+  transcribes it. MUTE MICROPHONE / UNMUTE MICROPHONE toggles listening.
+  Echo transcriptions is independent of microphone capture. When enabled,
+  Chatterbox speaks recognized text in the selected reference voice.
+- GENERATE SPEECH speaks typed text without transcription.
+- RECORD AUDIO / STOP RECORDING separately captures a source clip for voice
+  conversion. That clip remains in memory; recording does not run Whisper or
+  Echo. CONVERT VOICE transforms the source using the reference voice.
+- BROWSE chooses an external audio source without discarding the last recording.
+  Clicking the source field restores 'Using current recording...' when available.
+- The conversion waveform supports Play/Pause and click-to-seek.
+  Playback ending resets the playhead to the start. The preview
+  audibly includes the enabled input audio effects.
+
+## AUDIO AND SETTINGS
+- The Audio tab offers input/output device selection and WASAPI loopback.
+  Avoid using Echo with loopback capture of the same playback device.
+- Conversion source recordings stay in RAM. The Chatterbox conversion backend
+  temporarily stages its input under WhisperBox/data while processing, then
+  deletes the staging file; no WhisperBox recording temp folder is created in
+  Windows AppData.
+- Settings include Whisper beam size (1–5), Cache Voice Conditioning, Chunked
+  TTS (on by default), and Streaming Playback (on by default; available when
+  Chunked TTS is enabled). Existing saved preferences are preserved.
+- Long TTS requests are always split into safe model-sized segments, even when
+  Chunked TTS is disabled. Playback is one combined WAV unless Streaming
+  Playback is enabled. Text requests over 100,000 characters are rejected explicitly.
+  Large outputs may take substantial time to finish when Streaming Playback is off.
+- Saving and Storage controls where WAV recordings and transcripts are saved.
+  Tools and Maintenance includes presets, startup checks, and diagnostics ZIPs.
+- The Transcript Log displays recent recognized text.
+
+## TROUBLESHOOTING
+- Missing models: rerun Download_Models.bat while connected to the internet.
+- Missing packages or Python: rerun Install_WhisperBox.bat (same method).
+- CUDA failures: verify your driver or reinstall using CPU.
+- Missing input/output devices: check Windows permissions and connections,
+  then use Refresh Audio Devices on the Audio tab.
+- Startup errors: logs\gui_startup.log. Export diagnostics from Settings if
+  WhisperBox opens; diagnostic bundles exclude recorded audio and transcripts.
+- Note: Windows GUI/microphone integration and third-party hardware have not
+  been comprehensively certified. Stop Models and model switches may briefly
+  pause the UI while workers shut down.
+
+## PRIVACY AND RIGHTS
+Transcription and inference run locally. Installation and initial model downloads
+use public repositories. Use only voice recordings that you own or have
+permission to clone. Review upstream dependency licenses before redistribution.

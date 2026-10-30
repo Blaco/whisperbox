@@ -1,0 +1,7 @@
+PySide6>=6.7,<7
+numpy>=1.26,<3
+sounddevice>=0.5,<1
+soundfile>=0.13,<1
+soundcard>=0.4,<1
+librosa>=0.10.2,<0.12
+pedalboard>=0.9.23,<1
