@@ -1,6 +1,13 @@
 # WHISPERBOX
-Windows 10 (64-bit; 1809 or newer) / Windows 11 desktop voice application.
-Windows 10 compatibility is targeted but has NOT been certified.
+
+
+WhisperBox is a Windows desktop application that combines speech recognition, text-to-speech, voice cloning, and voice conversion in a single interface. It uses Faster-Whisper, Silero VAD, and Resemble AI's Chatterbox to transcribe speech, generate natural-sounding voices, and convert existing recordings to different voices. WhisperBox supports real-time microphone transcription, long-form speech generation, streaming playback, and audio processing. All speech processing runs locally, with support for CPU and NVIDIA GPU acceleration.
+
+<p align="center">
+  <img src="assets/screenshot.png" alt="WhisperBox Screenshot" width="700">
+</p>
+
+Compatibility: Windows 10 (64-bit, version 1809+) and Windows 11. Windows 10 compatibility has not been fully tested.
 
 ## QUICK INSTALL (INTERNET REQUIRED)
 1. Extract the entire ZIP to a writable folder.
